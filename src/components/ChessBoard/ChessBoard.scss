@@ -1,0 +1,44 @@
+.board {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 500px;
+  width: 500px;
+  border: 1px solid black;
+  display: flex;
+  flex-wrap: wrap;
+  .tile-white, .tile-black{
+    width: 100px;
+    height: 100px;
+  }
+  .tile-black{
+    background-color: cadetblue;
+    color: black;
+  }
+  .tile-white{
+    background-color: bisque;
+    color: black;
+  }
+  &-block {
+    width: 100%;
+    height: 100vh;
+  }
+}
+.row-bar, .column-bar{
+  display: grid;
+  position: absolute;
+}
+.row-bar{
+  text-align: center;
+  width: 500px;
+  top: -20px;
+  grid-template-columns: repeat(5,100px);
+}
+.column-bar{
+  align-items: center;
+  left: -20px;
+  height: 500px;
+  grid-template-rows: repeat(5,100px);
+
+}

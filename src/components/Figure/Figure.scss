@@ -1,0 +1,13 @@
+.figure{
+  &_block{
+    width: inherit;
+    height: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  &_img{
+    cursor: pointer;
+    width: 60px;
+  }
+}
