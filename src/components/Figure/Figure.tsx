@@ -11,14 +11,14 @@ const Figure = ({figureType}: IFigure) => {
     if (figureType === FigureTypes.BlackPawn) {
         return (
             <div className='figure_block'>
-                <img draggable='true' className="figure_img" src={wp} alt='pawn'/>
+                <img draggable='false' className="figure_img" src={bp} alt='pawn'/>
             </div>
         )
     }
     if (figureType === FigureTypes.WhitePawn) {
         return (
             <div className='figure_block'>
-                <img draggable='false' className="figure_img" src={bp} alt='pawn'/>
+                <img draggable='false' className="figure_img" src={wp} alt='pawn'/>
             </div>
 
         )
