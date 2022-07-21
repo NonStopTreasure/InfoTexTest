@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@enums/*": [
+        "src/enums/*"
+      ],
+      "@interfaces/*": [
+        "src/interfaces/*"
+      ],
+      "@components/*": [
+        "src/components/*"
+      ],
+      "@pages/*": [
+        "src/pages/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ]
+    }
+  }
+}
+

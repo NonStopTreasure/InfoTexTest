@@ -1,0 +1,14 @@
+.figure_block {
+  margin-top: 5px;
+  width: inherit;
+  height: inherit;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.figure_img {
+  cursor: pointer;
+  width: 80px;
+}
+
+/*# sourceMappingURL=Figure.css.map */

@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": "src/",
-    "target": "es5",
+    "baseUrl": ".",
+    "typeRoots": [
+      "./src/assets/index.d.ts"
+    ],
+    "target": "es6",
     "lib": [
       "dom",
       "dom.iterable",
@@ -13,14 +16,17 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "experimentalDecorators": true,
+    "downlevelIteration": true,
+    "noFallthroughCasesInSwitch": true
   },
+  "extends": "./tsconfig.paths.json",
   "include": [
     "src"
   ]
