@@ -23,12 +23,12 @@ function ChessBoard() {
   const rows = ['1', '2', '3', '4', '5'];
   const positions = columns.map((col) => rows.flatMap((row) => col + row));
   // players data
-  const whiteSide = [
+  const blackSide = [
     FigureTypes.BlackKing,
     FigureTypes.BlackHorse,
     FigureTypes.BlackPawn,
   ];
-  const blackSide = [
+  const whiteSide = [
     FigureTypes.WhiteHorse,
     FigureTypes.WhitePawn,
     FigureTypes.WhiteKing,
@@ -59,8 +59,8 @@ function ChessBoard() {
         ([key]) => key === col + row
       ) as [string, FigureTypes];
       const position = {
-        row,
         col,
+        row,
       };
       if (match) {
         const [, figureType] = match;
@@ -69,6 +69,7 @@ function ChessBoard() {
           figure: {
             figurePosition: position,
             figureType,
+            isMoved: false,
           },
         };
       }
@@ -82,17 +83,21 @@ function ChessBoard() {
   const [cells, setCells] = useState<ICells[]>(initialCells);
 
   const initialBoard = cells.flatMap((cell, i) => {
-    const flag = cell.position.col + cell.position.row === focusedPosition;
+    const selected = cell.position.col + cell.position.row === focusedPosition;
+    const positive = positiveMoves.includes(
+      cell.position.col + cell.position.row
+    );
     return {
       cell: (
         <div
           key={cell.position.col + cell.position.row}
           className={`${i % 2 === 0 ? 'tile-white' : 'tile-black'}${
-            flag ? '_selected' : ''
+            selected ? '_selected' : positive ? '_positive' : ''
           }`}
         >
           {cell.figure && (
             <Figure
+              isMoved={cell.figure.isMoved}
               figurePosition={cell.figure.figurePosition}
               figureType={cell.figure.figureType}
             />
@@ -101,7 +106,6 @@ function ChessBoard() {
       ),
     };
   });
-
   const [board, setBoard] = useState<IBoard[]>(initialBoard);
 
   const checkMateHandler = () => {
@@ -114,25 +118,156 @@ function ChessBoard() {
   };
 
   const positiveMovesHandler = (selectedCell: ICells) => {
-    const colIndex = columns.findIndex(
+    const rowIndex = columns.findIndex(
       (col) => col === selectedCell?.position.col
     );
-    const rowIndex = rows.findIndex(
+    const colIndex = rows.findIndex(
       (row) => row === selectedCell?.position.row
     );
-    if (selectedCell?.figure?.figureType === FigureTypes.WhiteKing) {
-      console.log('213');
-      const asd = positions.filter(
-        (pos, i) =>
-          (i === colIndex + 1 || i === colIndex - 1 || i === colIndex) &&
-          pos.filter(
-            (_s, j) =>
-              j === rowIndex + 1 || j === rowIndex - 1 || j === colIndex
+    if (whiteSide.some((type) => type === selectedCell?.figure?.figureType)) {
+      if (selectedCell.figure?.figureType === FigureTypes.WhiteKing) {
+        const allPositivePositions = positions
+          .filter(
+            (pos, i) =>
+              i === rowIndex + 1 || i === rowIndex - 1 || i === rowIndex
           )
-      );
-      console.log(asd);
+          .flatMap((pos) =>
+            pos.filter(
+              (_s, j) =>
+                j === colIndex + 1 || j === colIndex - 1 || j === colIndex
+            )
+          );
+        const moveTurn = allPositivePositions.filter((pos) =>
+          cells.some(
+            (cell) =>
+              cell.position.col + cell.position.row === pos &&
+              !whiteSide.some((type) => type === cell?.figure?.figureType)
+          )
+        );
+        setPositivesMoves(moveTurn);
+        return;
+      }
+      if (selectedCell.figure?.figureType === FigureTypes.WhitePawn) {
+        const isMoved = cells.find(
+          (cell) => cell.position === selectedCell.position
+        )?.figure?.isMoved;
+        const allPositivePositions = positions
+          .filter(
+            (pos, i) => i === rowIndex - 1 || (!isMoved && i === rowIndex - 2)
+          )
+          .flatMap((pos) =>
+            pos.filter(
+              (_s, j) =>
+                j === colIndex + 1 || j === colIndex - 1 || j === colIndex
+            )
+          );
+        const updateCells = cells.map((cell) => {
+          if (selectedCell.position === cell.position && cell.figure) {
+            cell.figure.isMoved = true;
+          }
+          return cell;
+        });
+        setCells(updateCells);
+        const fightTurn = allPositivePositions.filter((pos) => {
+          const find = positions.findIndex((row) =>
+            row.some((col) => col === pos)
+          );
+          return cells.some(
+            (cell) =>
+              cell.position.col + cell.position.row === pos &&
+              Math.abs(find - rowIndex) === 1 &&
+              !(selectedCell.position.row === pos.split('')[1]) &&
+              blackSide.some((type) => type === cell?.figure?.figureType)
+          );
+        });
+
+        const moveTurn = allPositivePositions.filter((pos) =>
+          cells.some((cell) => {
+            return (
+              cell.position.col + cell.position.row === pos &&
+              selectedCell.position.row === pos.split('')[1] &&
+              !cell.figure
+            );
+          })
+        );
+        const res = moveTurn.concat(fightTurn);
+        setPositivesMoves(res);
+        return;
+      }
+    }
+    if (blackSide.some((type) => type === selectedCell?.figure?.figureType)) {
+      if (selectedCell.figure?.figureType === FigureTypes.BlackKing) {
+        const allPositivePositions = positions
+          .filter(
+            (pos, i) =>
+              i === rowIndex + 1 || i === rowIndex - 1 || i === rowIndex
+          )
+          .flatMap((pos) =>
+            pos.filter(
+              (_s, j) =>
+                j === colIndex + 1 || j === colIndex - 1 || j === colIndex
+            )
+          );
+        const moveTurn = allPositivePositions.filter((pos) =>
+          cells.some(
+            (cell) =>
+              cell.position.col + cell.position.row === pos &&
+              !blackSide.some((type) => type === cell?.figure?.figureType)
+          )
+        );
+        setPositivesMoves(moveTurn);
+        return;
+      }
+      if (selectedCell.figure?.figureType === FigureTypes.BlackPawn) {
+        const isMoved = cells.find(
+          (cell) => cell.position === selectedCell.position
+        )?.figure?.isMoved;
+        const allPositivePositions = positions
+          .filter(
+            (pos, i) => i === rowIndex + 1 || (!isMoved && i === rowIndex + 2)
+          )
+          .flatMap((pos) =>
+            pos.filter(
+              (_s, j) =>
+                j === colIndex + 1 || j === colIndex - 1 || j === colIndex
+            )
+          );
+        const updateCells = cells.map((cell) => {
+          if (selectedCell.position === cell.position && cell.figure) {
+            cell.figure.isMoved = true;
+          }
+          return cell;
+        });
+        setCells(updateCells);
+
+        const fightTurn = allPositivePositions.filter((pos) => {
+          const find = positions.findIndex((row) =>
+            row.some((col) => col === pos)
+          );
+          return cells.some(
+            (cell) =>
+              cell.position.col + cell.position.row === pos &&
+              Math.abs(find - rowIndex) === 1 &&
+              !(selectedCell.position.row === pos.split('')[1]) &&
+              whiteSide.some((type) => type === cell?.figure?.figureType)
+          );
+        });
+        const moveTurn = allPositivePositions.filter((pos) =>
+          cells.some((cell) => {
+            return (
+              cell.position.col + cell.position.row === pos &&
+              selectedCell.position.row === pos.split('')[1] &&
+              !cell.figure
+            );
+          })
+        );
+        const res = moveTurn.concat(fightTurn);
+        setPositivesMoves(res);
+        return;
+      }
     }
   };
+
   const movesHandler = () => {
     const selectedCell = cells.find(
       (cell) => cell.position.col + cell.position.row === focusedPosition
@@ -143,15 +278,15 @@ function ChessBoard() {
           (whiteSide.some(
             (value) => value === selectedCell?.figure?.figureType
           ) &&
-            !turn) ||
+            turn) ||
           (blackSide.some(
             (value) => value === selectedCell?.figure?.figureType
           ) &&
-            turn)
+            !turn)
         ) {
           return;
         }
-        console.log('213');
+        setCodeMove('');
         positiveMovesHandler(selectedCell);
         setSelectedStartPos(selectedCell.position);
         setMainMessage('Choose a destination for figure');
@@ -165,24 +300,35 @@ function ChessBoard() {
         const startCellFig = cells.find(
           (cell) => cell.position === selectedStartPos
         )?.figure;
-        const newCells = cells.map((cell) => {
-          const newCell = cell;
-          if (cell.position === startCellPos) {
-            newCell.figure = null;
-          }
-          if (startCellFig && cell.position === selectedCell?.position) {
-            newCell.figure = startCellFig;
-          }
-          return newCell;
-        });
-        setTurn(!turn);
-        setFocusedPosition('c3');
-        setMainMessage('Choose figure');
-        setCells(newCells.reverse());
+        if (
+          positiveMoves.every((move) => {
+            return (
+              move !== selectedCell.position.col + selectedCell.position.row
+            );
+          })
+        ) {
+          setMainMessage('You cant choose this cell. Choose another');
+          setSelectedEndPos(null);
+        } else {
+          const newCells = cells.map((cell) => {
+            const newCell = cell;
+            if (cell.position === startCellPos) {
+              newCell.figure = null;
+            }
+            if (startCellFig && cell.position === selectedCell?.position) {
+              newCell.figure = startCellFig;
+            }
+            return newCell;
+          });
+          setTurn(!turn);
+          setFocusedPosition('c3');
+          setMainMessage('Choose figure');
+          setCells(newCells.reverse());
+          setSelectedStartPos(null);
+          setSelectedEndPos(null);
+          setPositivesMoves([]);
+        }
       }
-
-      setSelectedStartPos(null);
-      setSelectedEndPos(null);
     }
     const colIndex = columns.findIndex(
       (col) => col === selectedCell?.position.col

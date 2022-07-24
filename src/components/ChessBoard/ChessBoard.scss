@@ -1,56 +1,69 @@
 .board {
   display: grid;
-  grid-template-columns: repeat(5,102px);
+  grid-template-columns: repeat(5, 102px);
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  .tile-white, .tile-black{
+
+  .tile-white, .tile-black {
     border: 1px solid black;
     width: 100px;
     height: 100px;
-    &_selected{
+
+    &_selected {
       background-color: coral;
+    }
+
+    &_positive {
+      border: 1px solid black;
+      background-color: olivedrab;
     }
   }
 
-  .tile-black{
+  .tile-black {
     background-color: cadetblue;
     color: black;
   }
-  .tile-white{
+
+  .tile-white {
     background-color: #cbaf69;
     color: black;
   }
+
   &-block {
     outline: none;
     background-color: darkgray;
     width: 100%;
     height: 100vh;
-    .start-click, .choose-click{
+
+    .start-click, .choose-click {
       font-size: 60px;
       text-align: center;
     }
-    .turn-info{
+
+    .turn-info {
       text-align: center;
     }
   }
 }
 
-.row-bar, .column-bar{
+.row-bar, .column-bar {
   display: grid;
   position: absolute;
 }
-.row-bar{
+
+.row-bar {
   text-align: center;
   width: 500px;
   top: -20px;
-  grid-template-columns: repeat(5,102px);
+  grid-template-columns: repeat(5, 102px);
 }
-.column-bar{
+
+.column-bar {
   align-items: center;
   left: -20px;
   height: 500px;
-  grid-template-rows: repeat(5,102px);
+  grid-template-rows: repeat(5, 102px);
 
 }

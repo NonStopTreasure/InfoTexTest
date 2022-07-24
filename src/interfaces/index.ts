@@ -5,6 +5,7 @@ export interface IFigure {
     row: string;
     col: string;
   };
+  isMoved: boolean;
   figureType: FigureTypes;
 }
 
