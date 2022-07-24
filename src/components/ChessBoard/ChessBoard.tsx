@@ -19,9 +19,9 @@ const initialPositions = {
 
 function ChessBoard() {
   // positions data
-  const columns = ['a', 'b', 'c', 'd', 'e'];
-  const rows = ['1', '2', '3', '4', '5'];
-  const positions = columns.map((col) => rows.flatMap((row) => col + row));
+  const rows = ['a', 'b', 'c', 'd', 'e'];
+  const columns = ['1', '2', '3', '4', '5'];
+  const positions = rows.map((row) => columns.flatMap((col) => row + col));
   // players data
   const blackSide = [
     FigureTypes.BlackKing,
@@ -53,14 +53,15 @@ function ChessBoard() {
   } | null>(null);
   const [positiveMoves, setPositivesMoves] = useState<string[]>([]);
 
-  const initialCells = columns.flatMap((col) =>
-    rows.flatMap((row) => {
+  const initialCells = rows.flatMap((row) =>
+    columns.flatMap((col) => {
       const match = Object.entries(initialPositions).find(
-        ([key]) => key === col + row
+        ([key]) => key === row + col
       ) as [string, FigureTypes];
       const position = {
-        col,
-        row,
+        row, // ex - e
+        col, // ex - 3
+        // -> e3
       };
       if (match) {
         const [, figureType] = match;
@@ -83,14 +84,14 @@ function ChessBoard() {
   const [cells, setCells] = useState<ICells[]>(initialCells);
 
   const initialBoard = cells.flatMap((cell, i) => {
-    const selected = cell.position.col + cell.position.row === focusedPosition;
+    const selected = cell.position.row + cell.position.col === focusedPosition;
     const positive = positiveMoves.includes(
-      cell.position.col + cell.position.row
+      cell.position.row + cell.position.col
     );
     return {
       cell: (
         <div
-          key={cell.position.col + cell.position.row}
+          key={cell.position.row + cell.position.col}
           className={`${i % 2 === 0 ? 'tile-white' : 'tile-black'}${
             selected ? '_selected' : positive ? '_positive' : ''
           }`}
@@ -118,12 +119,13 @@ function ChessBoard() {
   };
 
   const positiveMovesHandler = (selectedCell: ICells) => {
-    const rowIndex = columns.findIndex(
-      (col) => col === selectedCell?.position.col
-    );
-    const colIndex = rows.findIndex(
+    const rowIndex = rows.findIndex(
       (row) => row === selectedCell?.position.row
     );
+    const colIndex = columns.findIndex(
+      (col) => col === selectedCell?.position.col
+    );
+
     if (whiteSide.some((type) => type === selectedCell?.figure?.figureType)) {
       if (selectedCell.figure?.figureType === FigureTypes.WhiteKing) {
         const allPositivePositions = positions
@@ -140,7 +142,7 @@ function ChessBoard() {
         const moveTurn = allPositivePositions.filter((pos) =>
           cells.some(
             (cell) =>
-              cell.position.col + cell.position.row === pos &&
+              cell.position.row + cell.position.col === pos &&
               !whiteSide.some((type) => type === cell?.figure?.figureType)
           )
         );
@@ -174,9 +176,9 @@ function ChessBoard() {
           );
           return cells.some(
             (cell) =>
-              cell.position.col + cell.position.row === pos &&
+              cell.position.row + cell.position.col === pos &&
               Math.abs(find - rowIndex) === 1 &&
-              !(selectedCell.position.row === pos.split('')[1]) &&
+              !(selectedCell.position.col === pos.split('')[1]) &&
               blackSide.some((type) => type === cell?.figure?.figureType)
           );
         });
@@ -184,14 +186,59 @@ function ChessBoard() {
         const moveTurn = allPositivePositions.filter((pos) =>
           cells.some((cell) => {
             return (
-              cell.position.col + cell.position.row === pos &&
-              selectedCell.position.row === pos.split('')[1] &&
+              cell.position.row + cell.position.col === pos &&
+              selectedCell.position.col === pos.split('')[1] &&
               !cell.figure
             );
           })
         );
-        const res = moveTurn.concat(fightTurn);
+
+        const cellAbove = cells.find(
+          (cell) =>
+            cell.position.row + cell.position.col ===
+            positions[rowIndex - 1][colIndex]
+        );
+        const res = cellAbove?.figure ? fightTurn : moveTurn.concat(fightTurn);
         setPositivesMoves(res);
+        return;
+      }
+      if (selectedCell.figure?.figureType === FigureTypes.WhiteHorse) {
+        const allPositivePositions = positions.flatMap((pos, i) =>
+          pos.filter((_s, j) => {
+            if (
+              i === rowIndex + 2 &&
+              (j === colIndex - 1 || j === colIndex + 1)
+            ) {
+              return true;
+            }
+            if (
+              i === rowIndex - 2 &&
+              (j === colIndex - 1 || j === colIndex + 1)
+            ) {
+              return true;
+            }
+            if (
+              i === colIndex + 2 &&
+              (j === rowIndex - 1 || j === rowIndex + 1)
+            ) {
+              return true;
+            }
+            if (
+              i === colIndex - 2 &&
+              (j === rowIndex - 1 || j === rowIndex + 1)
+            ) {
+              return true;
+            }
+          })
+        );
+        const moveTurn = allPositivePositions.filter((pos) =>
+          cells.some(
+            (cell) =>
+              cell.position.col + cell.position.row === pos &&
+              !whiteSide.some((type) => type === cell?.figure?.figureType)
+          )
+        );
+        setPositivesMoves(moveTurn);
         return;
       }
     }
@@ -211,7 +258,7 @@ function ChessBoard() {
         const moveTurn = allPositivePositions.filter((pos) =>
           cells.some(
             (cell) =>
-              cell.position.col + cell.position.row === pos &&
+              cell.position.row + cell.position.col === pos &&
               !blackSide.some((type) => type === cell?.figure?.figureType)
           )
         );
@@ -246,23 +293,46 @@ function ChessBoard() {
           );
           return cells.some(
             (cell) =>
-              cell.position.col + cell.position.row === pos &&
+              cell.position.row + cell.position.col === pos &&
               Math.abs(find - rowIndex) === 1 &&
-              !(selectedCell.position.row === pos.split('')[1]) &&
+              !(selectedCell.position.col === pos.split('')[1]) &&
               whiteSide.some((type) => type === cell?.figure?.figureType)
           );
         });
         const moveTurn = allPositivePositions.filter((pos) =>
           cells.some((cell) => {
-            return (
-              cell.position.col + cell.position.row === pos &&
-              selectedCell.position.row === pos.split('')[1] &&
-              !cell.figure
-            );
+            if (colIndex) {
+              return (
+                cell.position.row + cell.position.col === pos &&
+                selectedCell.position.col === pos.split('')[1] &&
+                !cell.figure
+              );
+            }
           })
         );
-        const res = moveTurn.concat(fightTurn);
+        const cellAbove = cells.find(
+          (cell) =>
+            cell.position.row + cell.position.col ===
+            positions[rowIndex + 1][colIndex]
+        );
+        const res = cellAbove?.figure ? fightTurn : moveTurn.concat(fightTurn);
         setPositivesMoves(res);
+        return;
+      }
+      if (selectedCell.figure?.figureType === FigureTypes.BlackHorse) {
+        const allPositivePositions = positions
+          .filter((pos, i) => i === rowIndex - 2 || rowIndex + 2)
+          .flatMap((pos) =>
+            pos.filter((_s, j) => j === colIndex + 1 || j === colIndex - 1)
+          );
+        const moveTurn = allPositivePositions.filter((pos) =>
+          cells.some(
+            (cell) =>
+              cell.position.col + cell.position.row === pos &&
+              !blackSide.some((type) => type === cell?.figure?.figureType)
+          )
+        );
+        setPositivesMoves(moveTurn);
         return;
       }
     }
@@ -270,7 +340,7 @@ function ChessBoard() {
 
   const movesHandler = () => {
     const selectedCell = cells.find(
-      (cell) => cell.position.col + cell.position.row === focusedPosition
+      (cell) => cell.position.row + cell.position.col === focusedPosition
     );
     if (codeMove === 'Enter' && selectedCell) {
       if (!selectedStartPos && selectedCell && selectedCell.figure) {
@@ -303,7 +373,7 @@ function ChessBoard() {
         if (
           positiveMoves.every((move) => {
             return (
-              move !== selectedCell.position.col + selectedCell.position.row
+              move !== selectedCell.position.row + selectedCell.position.col
             );
           })
         ) {
@@ -337,35 +407,35 @@ function ChessBoard() {
       (row) => row === selectedCell?.position.row
     );
     if (codeMove === 'ArrowUp') {
-      if (turn ? colIndex >= 4 : colIndex <= 0) {
-        return;
-      }
-      const newPosition =
-        positions[turn ? colIndex + 1 : colIndex - 1][rowIndex];
-      setFocusedPosition(newPosition);
-    }
-    if (codeMove === 'ArrowRight') {
-      if (turn ? rowIndex <= 0 : rowIndex >= 4) {
-        return;
-      }
-      const newPosition =
-        positions[colIndex][turn ? rowIndex - 1 : rowIndex + 1];
-      setFocusedPosition(newPosition);
-    }
-    if (codeMove === 'ArrowDown') {
-      if (turn ? colIndex <= 0 : colIndex >= 4) {
-        return;
-      }
-      const newPosition =
-        positions[turn ? colIndex - 1 : colIndex + 1][rowIndex];
-      setFocusedPosition(newPosition);
-    }
-    if (codeMove === 'ArrowLeft') {
       if (turn ? rowIndex >= 4 : rowIndex <= 0) {
         return;
       }
       const newPosition =
-        positions[colIndex][turn ? rowIndex + 1 : rowIndex - 1];
+        positions[turn ? rowIndex + 1 : rowIndex - 1][colIndex];
+      setFocusedPosition(newPosition);
+    }
+    if (codeMove === 'ArrowRight') {
+      if (turn ? colIndex <= 0 : colIndex >= 4) {
+        return;
+      }
+      const newPosition =
+        positions[rowIndex][turn ? colIndex - 1 : colIndex + 1];
+      setFocusedPosition(newPosition);
+    }
+    if (codeMove === 'ArrowDown') {
+      if (turn ? rowIndex <= 0 : rowIndex >= 4) {
+        return;
+      }
+      const newPosition =
+        positions[turn ? rowIndex - 1 : rowIndex + 1][colIndex];
+      setFocusedPosition(newPosition);
+    }
+    if (codeMove === 'ArrowLeft') {
+      if (turn ? colIndex >= 4 : colIndex <= 0) {
+        return;
+      }
+      const newPosition =
+        positions[rowIndex][turn ? colIndex + 1 : colIndex - 1];
       setFocusedPosition(newPosition);
     }
     setCodeMove('');
@@ -387,13 +457,13 @@ function ChessBoard() {
           <div className="choose-click">{mainMessage}</div>
           <h1 className="turn-info">{turn ? 'Black Turn' : 'White Turn'}</h1>
           <div className="board">
-            <div className="column-bar">
-              {columns.map((col) => (
+            <div className="row-bar">
+              {rows.map((col) => (
                 <i key={col}>{col}</i>
               ))}
             </div>
-            <div className="row-bar">
-              {rows.map((row) => (
+            <div className="column-bar">
+              {columns.map((row) => (
                 <i key={row}>{row}</i>
               ))}
             </div>

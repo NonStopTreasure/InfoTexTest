@@ -18,6 +18,8 @@
     &_positive {
       border: 1px solid black;
       background-color: olivedrab;
+      width: 100px;
+      height: 100px;
     }
   }
 
@@ -53,14 +55,14 @@
   position: absolute;
 }
 
-.row-bar {
+.column-bar {
   text-align: center;
   width: 500px;
   top: -20px;
   grid-template-columns: repeat(5, 102px);
 }
 
-.column-bar {
+.row-bar {
   align-items: center;
   left: -20px;
   height: 500px;
