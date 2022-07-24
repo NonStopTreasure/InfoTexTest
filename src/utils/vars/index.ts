@@ -28,30 +28,31 @@ export const whiteSide = [
   FigureTypes.WhiteKing,
 ];
 
-export const initialCells = rows.flatMap((row) =>
-  columns.flatMap((col) => {
-    const match = Object.entries(initialPositions).find(
-      ([key]) => key === row + col
-    ) as [string, FigureTypes];
-    const position = {
-      row, // ex - e
-      col, // ex - 3
-      // -> e3
-    };
-    if (match) {
-      const [, figureType] = match;
+export const initialCells = (rows: string[], columns: string[]) =>
+  rows.flatMap((row) =>
+    columns.flatMap((col) => {
+      const match = Object.entries(initialPositions).find(
+        ([key]) => key === row + col
+      ) as [string, FigureTypes];
+      const position = {
+        row, // ex - e
+        col, // ex - 3
+        // -> e3
+      };
+      if (match) {
+        const [, figureType] = match;
+        return {
+          position,
+          figure: {
+            figurePosition: position,
+            figureType,
+            isMoved: false,
+          },
+        };
+      }
       return {
         position,
-        figure: {
-          figurePosition: position,
-          figureType,
-          isMoved: false,
-        },
+        figure: null,
       };
-    }
-    return {
-      position,
-      figure: null,
-    };
-  })
-);
+    })
+  );

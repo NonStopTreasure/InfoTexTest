@@ -9,11 +9,28 @@ import {
 import { positiveMovesHandler } from '../../utils/functions/positiveMovesHandler';
 import { columns, initialCells, rows } from '../../utils/vars';
 import { movesHandler } from '../../utils/functions/movesHandler';
-import './ChessBoard.scss';
 import { initialBoard } from '../../utils/functions/initialBoard';
+import './ChessBoard.scss';
+import { FigureTypes } from '@enums/index';
+import { checkMateHandler } from '../../utils/functions/checkMateHandler';
 
 function ChessBoard() {
-  const [cells, setCells] = useState<ICells[]>(initialCells);
+  const [displayRows, setDisplayRows] = useState<string[]>([
+    'a',
+    'b',
+    'c',
+    'd',
+    'e',
+  ]);
+  const [displayCols, setDisplayCols] = useState<string[]>([
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+  ]);
+
+  const [cells, setCells] = useState<ICells[]>(initialCells(rows, columns));
   const [isStart, setIsStart] = useState<boolean>(false);
   const [turn, setTurn] = useState<boolean>(false);
   const [mainMessage, setMainMessage] = useState<string>('Choose figure');
@@ -24,13 +41,12 @@ function ChessBoard() {
   );
   const [selectedEndPos, setSelectedEndPos] = useState<IPosition | null>(null);
   const [positiveMoves, setPositivesMoves] = useState<string[]>([]);
-  const [displayRows, setDisplayRows] = useState<string[]>(rows);
-  const [displayCols, setDisplayCols] = useState<string[]>(columns);
   const resInitialBoard = initialBoard(cells, focusedPosition, positiveMoves);
   const [board, setBoard] = useState<IBoard[]>(resInitialBoard);
   //////
   const [isCheck, setIsCheck] = useState<boolean>(false);
   const [checkPositions, setCheckPositions] = useState<IFigureMoves[]>([]);
+
   const changePositiveMoves = (newPositiveMoves: string[]) => {
     setPositivesMoves(newPositiveMoves);
   };
@@ -65,26 +81,9 @@ function ChessBoard() {
 
   const reRenderBoard = () => setBoard(resInitialBoard);
 
-  const checkMateHandler = (selectedCell?: ICells) => {
-    if (selectedCell) {
-      positiveMovesHandler(selectedCell, isCheck, cells, changePositiveMoves);
-    } else {
-      const allFiguresData = cells
-        .filter((cell) => cell.figure)
-        .map((cell) => {
-          return {
-            figure: cell.figure as IFigure,
-            moves: positiveMovesHandler(
-              cell,
-              isCheck,
-              cells,
-              changePositiveMoves
-            ),
-          };
-        });
-      setCheckPositions(allFiguresData);
-    }
-  };
+  useEffect(() => {
+    console.log(checkMateHandler(cells));
+  }, [turn]);
 
   useEffect(() => {
     if (selectedStartPos && !positiveMoves.length) {
@@ -103,7 +102,6 @@ function ChessBoard() {
       changeCodeMove,
       changeTurn,
       changeFocusedPosition,
-      checkMateHandler,
       changeSelectedStartPos,
       changeSelectedEndPos,
       changeMainMessage,
@@ -113,7 +111,6 @@ function ChessBoard() {
       reRenderBoard
     );
   }, [codeMove]);
-
   return (
     <div
       onClick={() => setIsStart(true)}
@@ -127,13 +124,13 @@ function ChessBoard() {
           <h1 className="turn-info">{turn ? 'Black Turn' : 'White Turn'}</h1>
           <div className="board">
             <div className="row-bar">
-              {displayRows.map((col) => (
-                <i key={col}>{col}</i>
+              {displayRows.map((row) => (
+                <i key={row}>{row}</i>
               ))}
             </div>
             <div className="column-bar">
-              {displayCols.map((row) => (
-                <i key={row}>{row}</i>
+              {displayCols.map((col) => (
+                <i key={col}>{col}</i>
               ))}
             </div>
             {board.map((value) => value.cell)}

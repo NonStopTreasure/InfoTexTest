@@ -2,11 +2,64 @@ import { ICells } from '@interfaces/index';
 import { FigureTypes } from '@enums/index';
 import { blackSide, columns, positions, rows, whiteSide } from '../vars';
 
+const horseMoves = (rowIndex: number, colIndex: number) => {
+  return positions.flatMap((row, i) =>
+    row.filter((_s, k) => {
+      // top -> left and right pos
+      if (rowIndex >= 2 && i === rowIndex - 2) {
+        if (colIndex > 0 && k === colIndex - 1) {
+          return true;
+        }
+        if (colIndex < 4 && k === colIndex + 1) {
+          return true;
+        }
+      }
+      // bot -> left and right pos
+      if (rowIndex <= 4 && i === rowIndex + 2) {
+        if (colIndex > 0 && k === colIndex - 1) {
+          return true;
+        }
+        if (colIndex < 4 && k === colIndex + 1) {
+          return true;
+        }
+      }
+      // right -> top and bot pos
+      if (colIndex <= 4 && k === colIndex + 2) {
+        if (rowIndex > 0 && i === rowIndex - 1) {
+          return true;
+        }
+        if (rowIndex < 4 && i === rowIndex + 1) {
+          return true;
+        }
+      }
+      // left -> top and bot pos
+      if (colIndex >= 2 && k === colIndex - 2) {
+        if (rowIndex > 0 && i === rowIndex - 1) {
+          return true;
+        }
+        if (rowIndex < 4 && i === rowIndex + 1) {
+          return true;
+        }
+      }
+      return false;
+    })
+  );
+};
+const kingMoves = (rowIndex: number, colIndex: number) =>
+  positions
+    .filter(
+      (pos, i) => i === rowIndex + 1 || i === rowIndex - 1 || i === rowIndex
+    )
+    .flatMap((pos) =>
+      pos.filter(
+        (_s, j) => j === colIndex + 1 || j === colIndex - 1 || j === colIndex
+      )
+    );
+
 export const positiveMovesHandler = (
   selectedCell: ICells,
   isCheck: boolean,
-  cells: ICells[],
-  setNewPositiveMoves: (newPositiveMoves: string[]) => void
+  cells: ICells[]
 ): string[] => {
   const rowIndex = rows.findIndex((row) => row === selectedCell?.position.row);
   const colIndex = columns.findIndex(
@@ -15,27 +68,13 @@ export const positiveMovesHandler = (
 
   if (whiteSide.some((type) => type === selectedCell?.figure?.figureType)) {
     if (selectedCell.figure?.figureType === FigureTypes.WhiteKing) {
-      const allPositivePositions = positions
-        .filter(
-          (pos, i) => i === rowIndex + 1 || i === rowIndex - 1 || i === rowIndex
-        )
-        .flatMap((pos) =>
-          pos.filter(
-            (_s, j) =>
-              j === colIndex + 1 || j === colIndex - 1 || j === colIndex
-          )
-        );
-
-      const moveTurn = allPositivePositions.filter((pos) =>
+      return kingMoves(rowIndex, colIndex).filter((pos) =>
         cells.some(
           (cell) =>
             cell.position.row + cell.position.col === pos &&
             !whiteSide.some((type) => type === cell?.figure?.figureType)
         )
       );
-      if (isCheck) return moveTurn;
-      setNewPositiveMoves(moveTurn);
-      return moveTurn;
     }
     if (selectedCell.figure?.figureType === FigureTypes.WhitePawn) {
       const isMoved = cells.find(
@@ -79,88 +118,27 @@ export const positiveMovesHandler = (
           cell.position.row + cell.position.col ===
           positions[rowIndex - 1][colIndex]
       );
-      const res = cellAbove?.figure ? fightTurn : moveTurn.concat(fightTurn);
-      if (isCheck) return res;
-      setNewPositiveMoves(res);
-      return res;
+      return cellAbove?.figure ? fightTurn : moveTurn.concat(fightTurn);
     }
     if (selectedCell.figure?.figureType === FigureTypes.WhiteHorse) {
-      const allPositivePositions = positions.flatMap((row, i) =>
-        row.filter((_s, k) => {
-          // top -> left and right pos
-          if (rowIndex >= 2 && i === rowIndex - 2) {
-            if (colIndex > 0 && k === colIndex - 1) {
-              return true;
-            }
-            if (colIndex < 4 && k === colIndex + 1) {
-              return true;
-            }
-          }
-          // bot -> left and right pos
-          if (rowIndex <= 4 && i === rowIndex + 2) {
-            if (colIndex > 0 && k === colIndex - 1) {
-              return true;
-            }
-            if (colIndex < 4 && k === colIndex + 1) {
-              return true;
-            }
-          }
-          // right -> top and bot pos
-          if (colIndex <= 4 && k === colIndex + 2) {
-            if (rowIndex > 0 && i === rowIndex - 1) {
-              return true;
-            }
-            if (rowIndex < 4 && i === rowIndex + 1) {
-              return true;
-            }
-          }
-          // left -> top and bot pos
-          if (colIndex >= 2 && k === colIndex - 2) {
-            if (rowIndex > 0 && i === rowIndex - 1) {
-              return true;
-            }
-            if (rowIndex < 4 && i === rowIndex + 1) {
-              return true;
-            }
-          }
-          return false;
-        })
-      );
-      const moveTurn = allPositivePositions.filter((pos) =>
+      return horseMoves(rowIndex, colIndex).filter((pos) =>
         cells.some(
           (cell) =>
             cell.position.row + cell.position.col === pos &&
             !whiteSide.some((type) => type === cell?.figure?.figureType)
         )
       );
-
-      if (isCheck) return moveTurn;
-      setNewPositiveMoves(moveTurn);
-      return moveTurn;
     }
   }
   if (blackSide.some((type) => type === selectedCell?.figure?.figureType)) {
     if (selectedCell.figure?.figureType === FigureTypes.BlackKing) {
-      const allPositivePositions = positions
-        .filter(
-          (pos, i) => i === rowIndex + 1 || i === rowIndex - 1 || i === rowIndex
-        )
-        .flatMap((pos) =>
-          pos.filter(
-            (_s, j) =>
-              j === colIndex + 1 || j === colIndex - 1 || j === colIndex
-          )
-        );
-      const moveTurn = allPositivePositions.filter((pos) =>
+      return kingMoves(rowIndex, colIndex).filter((pos) =>
         cells.some(
           (cell) =>
             cell.position.row + cell.position.col === pos &&
             !blackSide.some((type) => type === cell?.figure?.figureType)
         )
       );
-      if (isCheck) return moveTurn;
-      setNewPositiveMoves(moveTurn);
-      return moveTurn;
     }
     if (selectedCell.figure?.figureType === FigureTypes.BlackPawn) {
       const isMoved = cells.find(
@@ -190,13 +168,11 @@ export const positiveMovesHandler = (
       });
       const moveTurn = allPositivePositions.filter((pos) =>
         cells.some((cell) => {
-          if (colIndex) {
-            return (
-              cell.position.row + cell.position.col === pos &&
-              selectedCell.position.col === pos.split('')[1] &&
-              !cell.figure
-            );
-          }
+          return (
+            cell.position.row + cell.position.col === pos &&
+            selectedCell.position.col === pos.split('')[1] &&
+            !cell.figure
+          );
         })
       );
       const cellAbove = cells.find(
@@ -204,63 +180,16 @@ export const positiveMovesHandler = (
           cell.position.row + cell.position.col ===
           positions[rowIndex + 1][colIndex]
       );
-      const res = cellAbove?.figure ? fightTurn : moveTurn.concat(fightTurn);
-      if (isCheck) return res;
-      setNewPositiveMoves(res);
-      return res;
+      return cellAbove?.figure ? fightTurn : moveTurn.concat(fightTurn);
     }
     if (selectedCell.figure?.figureType === FigureTypes.BlackHorse) {
-      const allPositivePositions = positions.flatMap((row, i) =>
-        row.filter((_s, k) => {
-          // top -> left and right pos
-          if (rowIndex >= 2 && i === rowIndex - 2) {
-            if (colIndex > 0 && k === colIndex - 1) {
-              return true;
-            }
-            if (colIndex < 4 && k === colIndex + 1) {
-              return true;
-            }
-          }
-          // bot -> left and right pos
-          if (rowIndex <= 4 && i === rowIndex + 2) {
-            if (colIndex > 0 && k === colIndex - 1) {
-              return true;
-            }
-            if (colIndex < 4 && k === colIndex + 1) {
-              return true;
-            }
-          }
-          // right -> top and bot pos
-          if (colIndex <= 4 && k === colIndex + 2) {
-            if (rowIndex > 0 && i === rowIndex - 1) {
-              return true;
-            }
-            if (rowIndex < 4 && i === rowIndex + 1) {
-              return true;
-            }
-          }
-          // left -> top and bot pos
-          if (colIndex >= 2 && k === colIndex - 2) {
-            if (rowIndex > 0 && i === rowIndex - 1) {
-              return true;
-            }
-            if (rowIndex < 4 && i === rowIndex + 1) {
-              return true;
-            }
-          }
-          return false;
-        })
-      );
-      const moveTurn = allPositivePositions.filter((pos) =>
+      return horseMoves(rowIndex, colIndex).filter((pos) =>
         cells.some(
           (cell) =>
             cell.position.row + cell.position.col === pos &&
             !blackSide.some((type) => type === cell?.figure?.figureType)
         )
       );
-      if (isCheck) return moveTurn;
-      setNewPositiveMoves(moveTurn);
-      return moveTurn;
     }
   }
   return [];
