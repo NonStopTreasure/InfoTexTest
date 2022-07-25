@@ -58,7 +58,6 @@ const kingMoves = (rowIndex: number, colIndex: number) =>
 
 export const positiveMovesHandler = (
   selectedCell: ICells,
-  isCheck: boolean,
   cells: ICells[]
 ): string[] => {
   const rowIndex = rows.findIndex((row) => row === selectedCell?.position.row);

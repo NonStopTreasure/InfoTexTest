@@ -1,6 +1,5 @@
-import { ICells, IPosition } from '@interfaces/index';
+import { ICells, IFigureMoves, IPosition } from '@interfaces/index';
 import { blackSide, columns, positions, rows, whiteSide } from '../vars';
-import { positiveMovesHandler } from './positiveMovesHandler';
 
 export const movesHandler = (
   codeMove: string,
@@ -10,6 +9,7 @@ export const movesHandler = (
   selectedStartPos: IPosition | null,
   selectedEndPos: IPosition | null,
   turn: boolean,
+  allMoves: IFigureMoves[],
   changeCodeMove: (newCodeMove: string) => void,
   changeTurn: () => void,
   changeFocusedPosition: (newFocusedPosition: string) => void,
@@ -43,7 +43,12 @@ export const movesHandler = (
         return;
       }
       changeCodeMove('');
-      changePositiveMoves(positiveMovesHandler(selectedCell, false, cells));
+
+      const privatePositiveMoves = allMoves.find(
+        (data) => data.figure.figurePosition === selectedCell.position
+      )?.moves;
+
+      changePositiveMoves(privatePositiveMoves as string[]);
       changeSelectedStartPos(selectedCell.position);
       changeMainMessage('Choose a destination for figure');
       return;

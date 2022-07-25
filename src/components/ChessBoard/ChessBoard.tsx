@@ -1,18 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-  IBoard,
-  ICells,
-  IFigure,
-  IFigureMoves,
-  IPosition,
-} from '@interfaces/index';
-import { positiveMovesHandler } from '../../utils/functions/positiveMovesHandler';
-import { columns, initialCells, rows } from '../../utils/vars';
-import { movesHandler } from '../../utils/functions/movesHandler';
-import { initialBoard } from '../../utils/functions/initialBoard';
+import { IBoard, ICells, IFigureMoves, IPosition } from '@interfaces/index';
+import { movesHandler } from '@utils/functions/movesHandler';
+import { initialBoard } from '@utils/functions/initialBoard';
+import { allMovesHandler } from '@utils/functions/allMovesHandler';
+import { columns, initialCells, rows } from '@utils/vars';
 import './ChessBoard.scss';
-import { FigureTypes } from '@enums/index';
-import { checkMateHandler } from '../../utils/functions/checkMateHandler';
 
 function ChessBoard() {
   const [displayRows, setDisplayRows] = useState<string[]>([
@@ -44,8 +36,13 @@ function ChessBoard() {
   const resInitialBoard = initialBoard(cells, focusedPosition, positiveMoves);
   const [board, setBoard] = useState<IBoard[]>(resInitialBoard);
   //////
-  const [isCheck, setIsCheck] = useState<boolean>(false);
-  const [checkPositions, setCheckPositions] = useState<IFigureMoves[]>([]);
+  // const [isCheck, setIsCheck] = useState<boolean>(false);
+  const [allMoves, setAllMoves] = useState<IFigureMoves[]>([]);
+
+  // const checkStateHandler = (newCheckState: boolean) => {
+  //   setMainMessage('Check. Defend you King!');
+  //   setIsCheck(newCheckState);
+  // };
 
   const changePositiveMoves = (newPositiveMoves: string[]) => {
     setPositivesMoves(newPositiveMoves);
@@ -82,7 +79,8 @@ function ChessBoard() {
   const reRenderBoard = () => setBoard(resInitialBoard);
 
   useEffect(() => {
-    console.log(checkMateHandler(cells));
+    const result = allMovesHandler(cells);
+    setAllMoves(result);
   }, [turn]);
 
   useEffect(() => {
@@ -99,6 +97,7 @@ function ChessBoard() {
       selectedStartPos,
       selectedEndPos,
       turn,
+      allMoves,
       changeCodeMove,
       changeTurn,
       changeFocusedPosition,
